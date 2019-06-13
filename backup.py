@@ -12,13 +12,12 @@ Keys to be replaced:
     1. parentID: ID of the parent folder
     2. you@email.com: the email address of your gdrive
     3. zapierRestURL: Zapier rest api endpoint to send notificatiosn to
-    
+
 """
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
+from googleapiclient.http import MediaFileUpload
 import datetime
-import io
 import tarfile
 import os
 import sys
@@ -101,7 +100,7 @@ def upload(fileName,service):
     ))
     batch.execute() 
 
-def clean():
+def clean(fileName):
     print("Deleting temporary files...")
     os.remove(fileName)
     print("Temporary files deleted. Backup complete!")
@@ -110,7 +109,7 @@ def clean():
 
 def notify(status,desc,now):
     print("Sending you a notification!")
-    url="zapierRestURL"
+    url="https://hooks.zapier.com/hooks/catch/5110971/vjxwdu/"
     if status:
         print(requests.get(url=url, params={"status":"Backup successful!","body":"A new backup was made to Google drive on %s successfully. The backup name is: %s."%(now,desc)}))
     else:
@@ -127,7 +126,7 @@ if (len(sys.argv)>2):
             fileName=archive(Path(sys.argv[3]))
             clearPastBackups(service)
             upload(fileName,service)
-            clean()
+            clean(fileName)
             date=datetime.datetime.now().strftime("%d %B, %Y (%A) at %I:%M %p")
             notify(True,fileName,date)
             
@@ -135,10 +134,10 @@ if (len(sys.argv)>2):
             printFiles(service)
             removeAll(service)
         else:
-            print("Argument format incorrect. The only arguments that can be used are 'backup' and 'clean'. Pass the token file as the secodn argument. If you choose backup, please specify the directory to back up as the third argument.")
+            print("Argument format incorrect. The only arguments that can be used are 'backup' and 'clean'. Pass the token file as the second argument. If you choose backup, please specify the directory to back up as the third argument.")
     except Exception as e:
         date=datetime.datetime.now().strftime("%d %B, %Y (%A) at %I:%M %p")
         print(e)
         notify(False,e,date)
 else:
-    print("Error: The arguments passed are not enough. You can choose either 'clean' or 'backup'. Pass the token file as the secodn argument. If you choose backup, specify the directory to backup as the third argument.")
+    print("Error: The arguments passed are not enough. You can choose either 'clean' or 'backup'. Pass the token file as the second argument. If you choose backup, specify the directory to backup as the third argument.")
